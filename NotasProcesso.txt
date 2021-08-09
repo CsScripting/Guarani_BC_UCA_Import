@@ -1,0 +1,35 @@
+Notas Importação Guarani_BC:
+
+ - Atenção ao nome de colunas...vinha com Guion_BAJO. Falar com Juan
+ 
+ 
+ --> No ficheiro de grupos Faltava a designação de codigo_plan
+ 
+ --> Aenção a nome splited de Grupos. 
+ 
+ --> Muito importante fazer analise detalhada a nomes de grupos que se irão crear...
+ 
+ 
+ ---> Como sera para inserir eventos com a hora original ou com as horas ajustadas ?? Segundo Camilo devera seguir as regras de Gerações de salas.
+ 
+ 
+ ---> NO caso de Numero de alunos estar a null será inserido o valor de 0
+ 
+ ---> Neste momento os valores de 0 em estudantes esta a ser considerado ...
+ 
+	  verificar função verify_students_null
+	  
+	  Verificar com Camilo se pode desconsiderar os nulos que estão no processo de geração de salas?
+
+
+---> Muito Importante....En caso de ter mais de uma sala para o mesmo evento....irá criar dois eventos...um com cada sala...
+ 
+--> Não usar o separador de ; nos nomes de Turmas e inserções de ... em BC.	  
+	  
+--> A respeito de Area Cientifica testar se so diferir a Area si importa de novo a disciplina.... para ja fica tudo a SD 
+
+
+-- > verificar com Camilo o que ira ficar no titulo de evento...
+
+
+Apesar de ser possivel de inserir mais de uma tipologia ....esta a inseriri uma tipologia por evento, o memso se aplica as salas.
