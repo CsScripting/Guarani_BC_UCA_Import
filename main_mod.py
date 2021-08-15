@@ -131,7 +131,7 @@ def begin_process():
 
             df_events = val.selec_data_comissiones_compartidas_to_import(df_events)
 
-            df_events.to_excel('./New_Files/EventsGrouped.xlsx', 'Hoja1', index = False)
+            # df_events.to_excel('./New_Files/EventsGrouped.xlsx', 'Hoja1', index = False)
 
             file_name = 'Horarios_UCA_'
             XML_AGREGADO = (v.xml_header + '\n'.join(df_events.apply(xml_m.xml_btt, axis=1)) + '\n' + v.xml_footer)
