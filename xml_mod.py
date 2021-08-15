@@ -7,6 +7,8 @@ def xml_btt (df):
 
 	for row in df.index:
 
+		
+
 		name_event = df[v_event_name]
 		academic_term = df[v_academic_term]
 
@@ -34,9 +36,13 @@ def xml_btt (df):
 		carrera_acron = df[c_courses_sigla].split(';;')
 		carrera_code = df[v_course_code].split(';;')
 
+		count_carreras = df[c_courses_name].count(';;') + 1
+
 
 
 		if (row == v_course_code):
+
+			validate_group = list()
 
 			xml_write.append(' <EventXmlRepresentation>') 
 			xml_write.append('   <Name>{0}</Name>'.format(name_event.strip()))
@@ -76,19 +82,25 @@ def xml_btt (df):
 			xml_write.append('   </Typologies>')
 			xml_write.append('   <StudentGroups>')
 			for i in range (count_groups):
-				xml_write.append('     <StudentGroup>')
-				xml_write.append('      <Name>{0}</Name>'.format(st_group[i].strip()))
-				xml_write.append('      <CurricularPlan>')
-				xml_write.append('       <Name>{0}</Name>'.format(plan_name[i].strip()))
-				xml_write.append('       <Code>{0}</Code>'.format(plan_cod[i].strip()))
-				xml_write.append('       <Year>{0}</Year>'.format(year[i].strip()))
-				xml_write.append('       <Course>')
-				xml_write.append('        <Name>{0}</Name>'.format(carrera_name[i].strip()))
-				xml_write.append('        <Acronym>{0}</Acronym>'.format(carrera_acron[i].strip()))
-				xml_write.append('        <Code>{0}</Code>'.format(carrera_code[i].strip()))
-				xml_write.append('       </Course>')
-				xml_write.append('      </CurricularPlan>')
-				xml_write.append('     </StudentGroup>')
+				
+				if ((i == 0) | (st_group[i] not in validate_group)):
+
+					xml_write.append('     <StudentGroup>')
+					xml_write.append('      <Name>{0}</Name>'.format(st_group[i].strip()))
+					xml_write.append('      <CurricularPlan>')
+					xml_write.append('       <Name>{0}</Name>'.format(plan_name[i].strip()))
+					xml_write.append('       <Code>{0}</Code>'.format(plan_cod[i].strip()))
+					xml_write.append('       <Year>{0}</Year>'.format(year[i].strip()))
+					xml_write.append('       <Course>')
+					xml_write.append('        <Name>{0}</Name>'.format(carrera_name[i].strip()))
+					xml_write.append('        <Acronym>{0}</Acronym>'.format(carrera_acron[i].strip()))
+					xml_write.append('        <Code>{0}</Code>'.format(carrera_code[i].strip()))
+					xml_write.append('       </Course>')
+					xml_write.append('      </CurricularPlan>')
+					xml_write.append('     </StudentGroup>')
+
+				validate_group.append(st_group[i])
+
 			xml_write.append('   </StudentGroups>')
 			xml_write.append(' </EventXmlRepresentation>') 
 

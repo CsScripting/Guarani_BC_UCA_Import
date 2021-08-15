@@ -33,6 +33,9 @@ v_classrooms = 'aula'
 v_classrooms_type = 'espacio_tipo_guarani'
 v_classrooms_code_guarani = 'espacio'
 
+v_id_event_guarani = 'asignacion'
+v_type_comission = 'ComisionCompartida'
+
 v_mod_area = 'area_academica'
 
 v_mod_acron = 'acronym_module'
@@ -87,6 +90,14 @@ s_id_guarani = 'id_salas'
 st_id_student_number = 'id_students'
 st_number_students = 'alumnos_historico'
 
+#variables dominante e dominada
+
+v_mod_comun = 'asignaturas_comunes'
+
+mod_pai = 'asignatura_dominante'
+plan_pai = 'plan_dominate'
+
+# mod_filho = 
 
 # -- variables -END- #
 
