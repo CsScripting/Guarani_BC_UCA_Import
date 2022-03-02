@@ -7,8 +7,6 @@ def xml_btt (df):
 
 	for row in df.index:
 
-		
-
 		name_event = df[v_event_name]
 		academic_term = df[v_academic_term]
 
