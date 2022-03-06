@@ -1,3 +1,4 @@
+from distutils.command import check
 import os.path
 from numpy import True_
 
@@ -30,186 +31,73 @@ def group_entities(df, list_series, sep = ',', sort_flag = True):
 	return df
 
 
-def read_data(events_file, events_spreed_sheet, \
-			  groups_file, groups_spreed_sheet,courses_spreed_sheet = 'Carreras',\
-			  validacion = False):
-	try:
-			
-		flag_validacion_columns = False
-
-
-
-		# Manage values 'NA'
-		val_null = ['-1.#IND', '1.#QNAN', '1.#IND', '-1.#QNAN', '#N/A N/A', 
-				   '#N/A', 'N/A', 'n/a', '', '#NA', 'NULL', 'null', 'NaN', '-NaN', 'nan', '-nan', '']
-
-
-		df_events = pd.read_excel ('./Files/' + events_file, events_spreed_sheet, dtype = 'str', keep_default_na=False, na_values=val_null)
-		df_courses = pd.read_excel ('./Files/' + events_file, courses_spreed_sheet, dtype = 'str', keep_default_na=False, na_values=val_null)
-
-		df_grupos = pd.read_excel ('./Files/' + groups_file, groups_spreed_sheet, dtype = 'str', keep_default_na=False, na_values=val_null)
-		df_salas = pd.read_excel ('./Files/' + events_file , 'Salas', dtype = 'str', keep_default_na=False, na_values=val_null)
-		
-
-
-		if (validacion == True):
-
-
-			# FORMAT_DATA_VALIDACION
-			col_names_events = df_events.columns.values.tolist()
-			col_names_grupos = df_grupos.columns.values.tolist()
-			col_names_salas = df_salas.columns.values.tolist()
-			col_names_courses = df_courses.columns.values.tolist()
-			
-			
-			flag_validacion, errorHeader, errorBody = format_validacion (col_names_events, col_names_grupos, col_names_salas, col_names_courses)
+def read_data(events_file, groups_file, check_classroom : int, map_groups : int):
+	
+	df_historic : DataFrame()
+	directory_files = './' + xlsx_dir	+ '/'
 	
 
-			if (flag_validacion == 'Wrong_Columns'):
+	# Manage values 'NA'
+	val_null = ['-1.#IND', '1.#QNAN', '1.#IND', '-1.#QNAN', '#N/A N/A', 
+				'#N/A', 'N/A', 'n/a', '', '#NA', 'NULL', 'null', 'NaN', '-NaN', 'nan', '-nan', '']
 
 
-				return (flag_validacion_columns, errorHeader, errorBody)
+	df_events = pd.read_excel (directory_files + events_file, sheet_horarios, dtype = 'str', keep_default_na=False, na_values=val_null)
+	df_courses = pd.read_excel (directory_files + events_file, sheet_course, dtype = 'str', keep_default_na=False, na_values=val_null)
+	df_grupos = pd.read_excel (directory_files + groups_file, sheet_grupos, dtype = 'str', keep_default_na=False, na_values=val_null)
 
-			
-			else:
+	if map_groups == 1:
 
-				flag_validacion_columns = True
-
-				return (flag_validacion_columns, '', '')
-			
-		else:
-
-			df_events = df_events [[v_comision, v_subcomision, v_day, v_hour_begin,
-									v_hour_end, v_typology, v_mod_cod, v_section,
-									v_students, v_group, v_weeks,
-									v_course_code, v_year,
-									g_plan_cod, v_mod_name,v_classrooms_code_guarani, v_id_event_guarani]]
-
-								 
-			df_events.drop_duplicates(inplace = True)
-
-			return (df_events, df_grupos, df_courses, df_salas)
-
-
-		
-	except ValueError as e:
-
+		df_historic = pd.read_excel (directory_files + 'HistoricoInscriptos.xlsx', 'Datos', dtype = 'str', keep_default_na=False, na_values=val_null)
 	
-		if (str(e) == "Worksheet named 'Salas' not found"):
+	if check_classroom == 1:
 
-
-			flag_validacion_columns = False
-			return (flag_validacion_columns, 'Error Sheet File', 'File Horarios must have sheets named Salas, and Carrerras.')
-
-
-		elif (str(e) == "Worksheet named 'Carreras' not found"):
-
-
-			flag_validacion_columns = False
-			return (flag_validacion_columns, 'Error Sheet File', 'File Horarios must have sheets named Salas, and Carreras.')
-				
-
-		else: 
-
-			error =  str(e)
-
-			flag_validacion_columns = False
-
-			return(flag_validacion_columns,'Error Sheet File', error)
-			
-				
-
-
-	# Verify if file exist or Folder to store File
-	except FileNotFoundError as e:
-
-
-		error =  str(e)
-
-
-		flag_validacion_columns = False
-
-		return(flag_validacion_columns, 'File Not Found', error)
-
-
-
-
-
-
-def format_validacion (col_events,  col_grupos, col_salas, col_course ):
-
-
-	columns_files = []
-	columns_files.insert(0, col_events)
-	columns_files.append (col_grupos)
-	columns_files.append (col_salas)
-	columns_files.append (col_course)
+		df_salas = pd.read_excel (directory_files + events_file , sheet_classrooms, dtype = 'str', keep_default_na=False, na_values=val_null)
 	
-	
-	columns_values_original = []
 
-	columns_events = [v_comision, v_subcomision, v_day, v_hour_begin,
-					  v_hour_end, v_typology, v_mod_cod, v_section,
-					  v_students, v_group, v_teacher, v_weeks,
-					  v_course_code, v_year,
-					  g_plan_cod, v_mod_name, v_classrooms_code_guarani, v_id_event_guarani]
+		df_events = df_events [[v_comision, v_subcomision, v_day, v_hour_begin,
+								v_hour_end, v_typology, v_mod_cod, v_section,
+								v_students, v_group, v_weeks,
+								v_course_code, v_year,
+								g_plan_cod, v_mod_name,v_classrooms_code_guarani, v_id_event_guarani]]
 
-	columns_values_original.insert(0, columns_events)
-	
-	
-	
-	columns_grupos = [g_name, g_plan_cod, g_students, g_max_limit, g_cons_limit,
-					 v_comision, v_subcomision, g_nombre_comision,
-					 v_section, g_agreggated_groups]
-										
-	
-	columns_values_original.append(columns_grupos)
-	
-	columns_salas = [s_sala_name, s_sala_code, s_sala_edificio]
-	
-	columns_values_original.append(columns_salas)
+									
+		df_events.drop_duplicates(inplace = True)
 
-	columns_courses = [c_courses_name,c_courses_sigla, c_courses_code]
-	
-	columns_values_original.append (columns_courses)
+		return (df_events, df_grupos, df_courses, df_salas, df_historic)
+
+	else:
+
+		df_events = df_events [[v_comision, v_subcomision, v_day, v_hour_begin,
+								v_hour_end, v_typology, v_mod_cod, v_section,
+								v_students, v_group, v_weeks,
+								v_course_code, v_year,
+								g_plan_cod, v_mod_name, v_id_event_guarani]]
+
+									
+		df_events.drop_duplicates(inplace = True)
+
+		return (df_events, df_grupos, df_courses, df_historic)
 
 
 
-	for i in range (4):
-	
-		check_column_names = all(elem in columns_files[i] for elem in columns_values_original[i])
 
-		if not check_column_names and i == 0:
-				
-			
-			return ('Wrong_Columns', 'Wrong_Columns (Schedules)', columns_events )
-			
-				
-		elif not check_column_names and i == 1:
-		
-			
-			return ('Wrong_Columns', 'Wrong_Columns (Groups)', columns_grupos)
+def check_nulls(df, check_classrooms):
 
-		elif not check_column_names and i == 2:
-			
-			return ('Wrong_Columns', 'Wrong_Columns (Salas)', columns_salas)
-			
-				
-		elif not check_column_names and i == 3:
+	if check_classrooms == 1:
 
-			return ('Wrong_Columns','Wrong_Columns (Carreras)', columns_courses)
+		df = df [[v_comision, v_subcomision, v_day, v_hour_begin, v_hour_end, 
+				v_typology,v_mod_cod, v_mod_name, v_section, 
+				v_students, v_group, v_weeks, 
+				v_year,v_course_code, v_codigo_plan, v_classrooms_code_guarani, v_id_event_guarani]]
 
-	return('Columns_OK', '', '')
+	else:
 
-def check_nulls(df):
+		df = df [[v_comision, v_subcomision, v_day, v_hour_begin, v_hour_end, 
+				v_typology,v_mod_cod, v_mod_name, v_section, 
+				v_students, v_group, v_weeks, 
+				v_year,v_course_code, v_codigo_plan, v_id_event_guarani]]
 
-
-	df = df [[v_comision, v_subcomision, v_day, v_hour_begin, v_hour_end, 
-			  v_typology,v_mod_cod, v_mod_name, v_section, 
-			  v_students, v_group, v_weeks, 
-			  v_year,v_course_code, v_codigo_plan, v_classrooms_code_guarani, v_id_event_guarani]]
-
-	
 	#remove duplicated because teacher lines
 	df.drop_duplicates(inplace = True)  
 	  
@@ -239,7 +127,6 @@ def check_nulls(df):
 
 	return (df)
 
-	
 
 def verify_students_null (df):
 
@@ -307,8 +194,6 @@ def get_name_salas_btt(df_events, df_salas):
 			df_not_match_sala.to_excel(path_file, 'NotMatchSalas', index = False )
 		
 
-
-
 	return (df_map_classrooms)
 
 
@@ -357,7 +242,7 @@ def sigla(name):
 					new_sigla += name[i]
 	return new_sigla
 
-def join_curriculum (df_events, df_courses, df_groups):
+def join_curriculum (df_events, df_courses, df_groups, check_classrooms):
 	
 	df_events = pd.merge(left = df_events, right = df_courses, how = 'left', left_on = v_course_code , right_on = c_courses_code, indicator = True)
 
@@ -424,21 +309,35 @@ def join_curriculum (df_events, df_courses, df_groups):
 
 	df_events_map_g [v_comision]= np.where(df_events_map_g[v_subcomision] != '0', df_events_map_g[v_comision] + '-' + df_events_map_g[v_subcomision],
 							      		   df_events_map_g[v_comision])
- 
-	df_events_map_g = df_events_map_g [[v_comision, v_students, v_hour_begin, v_hour_end, v_day,
-										v_mod_name, v_mod_acron, v_mod_cod,
-										s_sala_name, s_sala_edificio, v_weeks, 
-										v_typology,
-										v_bullet_group,v_plan_name, g_plan_cod, v_year,
-										c_courses_name, c_courses_sigla, v_course_code, v_id_event_guarani]]
+	
+	if check_classrooms == 1:
+		df_events_map_g = df_events_map_g [[v_comision, v_students, v_hour_begin, v_hour_end, v_day,
+											v_mod_name, v_mod_acron, v_mod_cod,
+											s_sala_name, s_sala_edificio, v_weeks, 
+											v_typology,
+											v_bullet_group,v_plan_name, g_plan_cod, v_year,
+											c_courses_name, c_courses_sigla, v_course_code,g_nombre_comision, v_section,v_id_event_guarani]]
 
-	df_events_map_g.insert(8, v_mod_area, 'SD')
+		df_events_map_g.insert(8, v_mod_area, 'SD')
 
-	return(df_events_map_g)
+		return(df_events_map_g)
+
+	else:
+
+		df_events_map_g = df_events_map_g [[v_comision, v_students, v_hour_begin, v_hour_end, v_day,
+											v_mod_name, v_mod_acron, v_mod_cod,
+										    v_weeks, 
+											v_typology,
+											v_bullet_group,v_plan_name, g_plan_cod, v_year,
+											c_courses_name, c_courses_sigla, v_course_code,g_nombre_comision,v_section, v_id_event_guarani]]
+
+		df_events_map_g.insert(8, v_mod_area, 'SD')
+
+		return(df_events_map_g)
 
 
 
-def grouped_data (df : DataFrame):
+def grouped_data (df : DataFrame, check_classrooms, check_groups):
 
 
 	df.drop_duplicates(keep= 'first', inplace = True)
@@ -449,13 +348,21 @@ def grouped_data (df : DataFrame):
 	#Tres agregações:
 	#1ª agregar as turmas por comissão:
 
-	list_series = [v_comision,v_hour_begin, v_hour_end, v_day,v_weeks, 
-				   v_mod_name, v_mod_cod, v_mod_acron, v_mod_area,
-				   s_sala_name, s_sala_edificio,
-				   v_typology,v_id_event_guarani]
+	if check_classrooms == 1:
+		list_series = [v_comision,v_hour_begin, v_hour_end, v_day,v_weeks, 
+					   v_mod_name, v_mod_cod, v_mod_acron, v_mod_area,
+					   s_sala_name, s_sala_edificio,
+					   v_typology,v_id_event_guarani]
+	else:
 
+		list_series = [v_comision,v_hour_begin, v_hour_end, v_day,v_weeks, 
+					   v_mod_name, v_mod_cod, v_mod_acron, v_mod_area,
+					   v_typology,v_id_event_guarani]
+
+	df[v_students] = df[v_students].astype(int)
+	df = df.sort_values(by = v_students, ascending =  False)
+	
 	df  = group_entities(df, list_series, sep = '##')
-
 	df[v_students] = df[v_students].str.split('##').str[0]
 
 	# 2º Agregar comissões que por vezes têm as mesma turmas associadas a diferentes disciplinas...para o mesmo id de Guarani
@@ -489,7 +396,6 @@ def grouped_data (df : DataFrame):
 def insert_name_section (df: DataFrame):
 
 	# A verificar como serão as designações de Turno:
-
 	# No caso de comissão compartida fica inserir a string C_Compartida...
 	# No caso de comissãp não compartida segue o padrão de Comissão_SubComissãp_IdGuaraní
  
@@ -520,12 +426,25 @@ def final_weeks(df):
 
 
 
-def selec_data_comissiones_compartidas_to_import(df: DataFrame):
+def selec_data_comissiones_compartidas_to_import(df: DataFrame, check_classroom : int):
 
-	df_to_import = df[[v_academic_term, v_section, v_students, v_hour_begin, v_hour_end,
-             v_day, v_mod_name, v_mod_acron, v_mod_cod, v_mod_area, s_sala_name, s_sala_edificio, v_weeks,
-             v_typology, v_bullet_group, v_plan_name, g_plan_cod, v_year, c_courses_name, c_courses_sigla, v_course_code, v_type_comission]].copy()
+	if check_classroom == 1:
 
+		df_to_import = df[[v_academic_term, v_section, v_students, v_hour_begin, v_hour_end,
+						v_day, v_mod_name, v_mod_acron, v_mod_cod, v_mod_area, s_sala_name, s_sala_edificio, v_weeks,
+						v_typology, v_bullet_group, v_plan_name, g_plan_cod, v_year, c_courses_name, c_courses_sigla, v_course_code, v_type_comission]].copy()
+
+		df_to_import[s_sala_name] = np.where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_name].str.split(';;').str[0], df_to_import[s_sala_name])
+		df_to_import[s_sala_edificio] = np.where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_edificio].str.split(';;').str[0], df_to_import[s_sala_edificio])
+
+	else:
+
+		df_to_import = df[[v_academic_term, v_section, v_students, v_hour_begin, v_hour_end,
+						   v_day, v_mod_name, v_mod_acron, v_mod_cod, v_mod_area, v_weeks,
+						   v_typology, v_bullet_group, v_plan_name, g_plan_cod, v_year, c_courses_name, c_courses_sigla, v_course_code, v_type_comission]].copy()
+
+
+	#To remove separator compartidas
 	df_to_import [v_bullet_group] = df_to_import [v_bullet_group].str.replace('##',';;')
 	df_to_import [v_plan_name] = df_to_import [v_plan_name].str.replace('##',';;')
 	df_to_import [g_plan_cod] = df_to_import [g_plan_cod].str.replace('##',';;')
@@ -539,22 +458,16 @@ def selec_data_comissiones_compartidas_to_import(df: DataFrame):
 	df_to_import[v_type_comission] = df_to_import[v_type_comission].astype(str)
 
 
-
+	#Select only one module to generate insert event on BC.
 	df_to_import[v_mod_name] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_name].str.split(';;').str[0], df_to_import[v_mod_name]) 
 	df_to_import[v_mod_cod] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_cod].str.split(';;').str[0], df_to_import[v_mod_cod]) 
 	df_to_import[v_mod_acron] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_acron].str.split(';;').str[0], df_to_import[v_mod_acron]) 
 	df_to_import[v_mod_area] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_area].str.split(';;').str[0], df_to_import[v_mod_area])
 
-	df_to_import[s_sala_name] = np.where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_name].str.split(';;').str[0], df_to_import[s_sala_name])
-	df_to_import[s_sala_edificio] = np.where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_edificio].str.split(';;').str[0], df_to_import[s_sala_edificio])
 
 	df_to_import[v_typology] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_typology].str.split(';;').str[0], df_to_import[v_typology])
 
 	df_to_import.insert(0, v_event_name, df_to_import[v_section] + '_' + df_to_import[v_mod_name])
-
-
-
-
 
 	return df_to_import
 
@@ -563,8 +476,23 @@ def selec_data_comissiones_compartidas_to_import(df: DataFrame):
 
 # 	df = df [[v_mod_cod, v_plan_name, g_plan_cod]].copy()
 
-
-
 # 	df_view = df.copy()
 
 # 	return df
+
+
+def map_students_number_historic (df_event : DataFrame, df_historic : DataFrame):
+
+	df_historic.rename(columns = {v_students : 'students_historic'}, inplace=True)
+	df_event [v_students] = df_event[v_students].astype(int)
+	df_event = pd.merge(left = df_event, right = df_historic, how = 'left', on = [v_mod_cod, v_typology, v_section, v_mod_name, g_nombre_comision, g_plan_cod], indicator=True )
+
+	df_event['students_historic'].fillna('0', inplace = True)
+	df_event['students_historic'] = df_event['students_historic'].astype(int) 
+	df_event[v_students] = np.where((df_event[v_students] < 10) & (df_event['_merge'] == 'both') & (df_event['students_historic'] > df_event[v_students]), 
+									df_event['students_historic'], df_event[v_students] )
+
+	df_event.drop(columns=[g_nombre_comision, v_section, 'students_historic', '_merge'], inplace = True)
+
+
+	return(df_event)

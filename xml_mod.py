@@ -1,7 +1,10 @@
 from variables_mod import *
+from library import(
+	codecs
+)
 
 
-def xml_btt (df):
+def xml_btt (df, check_classrooms):
 
 	xml_write = []
 
@@ -19,8 +22,9 @@ def xml_btt (df):
 		mod_acron = df[v_mod_acron]
 		mod_code = df[v_mod_cod]
 		mod_area = df[v_mod_area]
-		sala_name = df[s_sala_name]
-		sala_edif = df[s_sala_edificio]
+		if check_classrooms == 1:
+			sala_name = df[s_sala_name]
+			sala_edif = df[s_sala_edificio]
 		weeks = df[v_weeks]
 		typologie = df[v_typology]
 
@@ -57,14 +61,19 @@ def xml_btt (df):
 			xml_write.append('     <Code>{0}</Code>'.format(mod_code.strip()))
 			xml_write.append('     <ScientificArea> <Name>{0}</Name> </ScientificArea>'.format(mod_area.strip()))
 			xml_write.append('   </Module>')
-			xml_write.append('   <Classrooms>')
-			xml_write.append('     <Classroom>')
-			xml_write.append('       <Name>{0}</Name>'.format(sala_name.strip()))
-			xml_write.append('     	 <Building>')
-			xml_write.append('         <Name>{0}</Name>'.format(sala_edif.strip()))
-			xml_write.append('     	 </Building>')
-			xml_write.append('     </Classroom>')
-			xml_write.append('   </Classrooms>')
+			
+			if check_classrooms == 1:
+				xml_write.append('   <Classrooms>')
+				xml_write.append('     <Classroom>')
+				xml_write.append('       <Name>{0}</Name>'.format(sala_name.strip()))
+				xml_write.append('     	 <Building>')
+				xml_write.append('         <Name>{0}</Name>'.format(sala_edif.strip()))
+				xml_write.append('     	 </Building>')
+				xml_write.append('     </Classroom>')
+				xml_write.append('   </Classrooms>')
+			else:
+				xml_write.append('   <Classrooms />')
+
 			xml_write.append('   <Teachers />')
 			xml_write.append('   <Weeks>')
 			week_insert = weeks.split(',')

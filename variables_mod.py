@@ -5,6 +5,18 @@ from configparser import SafeConfigParser
 import time as t
 
 
+version = '3.0'
+xlsx_dir = 'DataProcess'
+
+#Names Sheets Values
+
+sheet_horarios = 'Horarios'
+sheet_classrooms = 'Salas'
+sheet_course = 'Carreras'
+sheet_grupos = 'Grupos'
+
+
+
 v_day = 'dia_semana'
 v_event_id = 'ID'
 v_event_name = 'EventName'
@@ -96,6 +108,8 @@ v_mod_comun = 'asignaturas_comunes'
 
 mod_pai = 'asignatura_dominante'
 plan_pai = 'plan_dominate'
+
+id_add_student = 'ID_ADD_STUDENT'
 
 # mod_filho = 
 
