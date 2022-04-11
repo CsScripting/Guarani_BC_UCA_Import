@@ -4,6 +4,10 @@ from datetime import timedelta
 import numpy as np
 from variables_mod import *
 
+from library import (
+	ExcelWriter
+)
+
 
 
 																
@@ -91,25 +95,11 @@ def extract_numeric_values (df, name_serie):
 	return df   
 
 
-def write_exist_file(df, path_associad, sheet_name_associad):
-
-	with pd.ExcelWriter(path_associad, engine = 'openpyxl', mode='a') as writer:  
-	  df.to_excel(writer, sheet_name=sheet_name_associad,index = False )
-
-	# from openpyxl import load_workbook
-	# path = path_associad
-	# book = load_workbook(path)
-	# writer = pd.ExcelWriter(path, engine = 'openpyxl')
-	# writer.book = book
-	# df.to_excel(writer, sheet_name = sheet_name_associad, index = False)
-	# writer.save()
-	
-	
-
-	
-	
-
-	
+def write_file(df, path_associad, sheet_name_associad):
+    
+    with ExcelWriter(path_associad, engine = 'openpyxl', mode='a') as writer:  
+        df.to_excel(writer, sheet_name=sheet_name_associad,index = False, freeze_panes=(1,0))
+		
 
 	
 def split_by_column(column,sep):
@@ -138,14 +128,6 @@ def range_int (x, y):
 	
 	return values_range
 
-	
-pd.set_option(
-	'display.max_colwidth', 100 # default 50
-)
-
-pd.set_option(
-	'display.max_rows', 60  # default 60
-)
 
 
 

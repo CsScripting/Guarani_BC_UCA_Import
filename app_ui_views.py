@@ -52,6 +52,8 @@ def start_main_window():
     global path
     global link
     global button_start
+    global label1_begin
+    global label2_begin
     
     #Proprieties Window
     main_window.geometry ("230x150")
@@ -68,16 +70,16 @@ def start_main_window():
      
     button_start = tk.Button(main_window, text = 'START', background="#d1e0e0", borderwidth=0)
     button_start['state'] = 'disabled'
-    label1 = tk.Label(main_window, text = 'BTT XML BC\n\n-- Guarani to Bullet Calendar --\n'+ version,)
-    label2 = tk.Label(main_window, text = '')
+    label1_begin= tk.Label(main_window, text = 'BTT XML BC\n\n-- Guarani to Bullet Calendar --\n'+ version,)
+    label2_begin = tk.Label(main_window, text = '')
     link = tk.Label(main_window, text="Process Settings",font=('Helvetica', 8, 'underline'), fg="#663300", cursor="hand2")
     link.bind("<Button-1>", lambda e: start_settings_window())
 
     #Position objects inside window
-    label1.grid(column= 0, row = 0, pady=10)
+    label1_begin.grid(column= 0, row = 0, pady=10)
     button_start.grid(column = 0, row = 1)
     link.grid(column=0, row=3, ipady=4)
-    label2.grid(column=0, row=4)
+    label2_begin.grid(column=0, row=4)
 
     #Center Window - position on grid
     main_window.columnconfigure(0, weight=1)
@@ -133,17 +135,17 @@ def start_settings_window():
     #Config label File Schedules
     fileLabel_schedules = tk.Label(top_WindowGrid, text='File Schedules:', font="Segoe 8 italic", foreground="#009999")
     #Config textInsertion Schedules
-    names_inserted_vars[0] = tk.Entry(top_WindowGrid,borderwidth=0, width=20,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
+    names_inserted_vars[0] = tk.Entry(top_WindowGrid,borderwidth=0,highlightthickness=1,highlightcolor='#ffb84d', width=20,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
 
     #Config label File Groups
     fileLabel_groups = tk.Label(top_WindowGrid, text='File Groups:', font="Segoe 8 italic", foreground="#009999")
     #Config textInsertion Groups
-    names_inserted_vars[1] = tk.Entry(top_WindowGrid,borderwidth=0, width=20,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
+    names_inserted_vars[1] = tk.Entry(top_WindowGrid,borderwidth=0,highlightthickness=1,highlightcolor='#ffb84d', width=20,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
 
     #Config label File Schedules
     fileLabel_period_btt = tk.Label(top_WindowGrid, text='Acad. Term BTT:', font="Segoe 8 italic", foreground="#009999")
     #Config textInsertion Schedules
-    names_inserted_vars[2] = tk.Entry(top_WindowGrid,borderwidth=0, width=5,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
+    names_inserted_vars[2] = tk.Entry(top_WindowGrid,borderwidth=0,highlightthickness=1,highlightcolor='#ffb84d', width=5,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
     
     #Position Objects inside TopGrid 
     fileLabel_schedules.grid(row=0, column=0, sticky=tk.W, pady=2,padx=3 )
@@ -335,47 +337,88 @@ def enable_settings():
 
 
 #Functions UI-RUNNING
+def update_start_window():
 
+    label1_begin.config (text = 'BTT XML BC\n\n-- Guarani to Bullet Calendar --\n'+ version,)
+    label2_begin.config(text = '')
+    label3.config(text='')
 
-def status_running (name, func):
+    disable_button_start()
+    label3.grid_remove()
 
+    #Position objects inside window
+    label1_begin.grid(column= 0, row = 0, pady=10)
+    button_start.grid(column = 0, row = 1)
+    link.grid(column=0, row=3, ipady=4)
+    label2_begin.grid(column=0, row=4)
+    enable_link_settings()
 
-    label1 = tk.Label(main_window, text = 'Events BC (.xlsx) -> XML BC\n\n-- Import Schedules to Calendar --\n'+ version)
-    label2 = tk.Label(main_window, text = 'Running')
-    label3 = tk.Label(main_window, text = '....', font =(5)) 
-
-    label1.grid(column= 0, row = 0)
-    label2.grid (column = 0, row = 1)
-    label3.grid(column = 0, row = 2)
-
+    #Center Window - position on grid
     main_window.columnconfigure(0, weight=1)
     main_window.rowconfigure(0, weight=1)
-    main_window.update()
+
+    return()
+
+def status_running (name, func):
+    global label3
+    def on_start():
+        global running
+        running = True
+
+
+    def on_stop():
+        global running
+        running = False
+    
+    on_start()
+
+    if running:
+
+        label1_begin.config (text = 'BTT XML BC\n\n-- Guarani to Bullet Calendar --\n'+ version,)
+        label2_begin.config(text = 'Running')
+        label3 = tk.Label(main_window, text = '....', font =(5)) 
+
+        label1_begin.grid(column= 0, row = 0)
+        label2_begin.grid (column = 0, row = 1)
+        label3.grid(column = 0, row = 2)
+        link.grid_remove()
+
+        main_window.columnconfigure(0, weight=1)
+        main_window.rowconfigure(0, weight=1)
+        main_window.update()
 
 
     def update_status_running ():
 
+        if running:
 
-        # Get the current message
-        current_status = label3["text"]
+            # Get the current message
+            current_status = label3["text"]
 
-        if current_status.endswith("...."): current_status = ""
+            if current_status.endswith("...."): current_status = ""
 
-        # If not, then just add a "." on the end
-        else: current_status += "."
+            # If not, then just add a "." on the end
+            else: current_status += "."
 
-        # Update the message
-        label3["text"] = current_status
+            # Update the message
+            label3["text"] = current_status
 
-        # After 1 second, update the status
-        main_window.after(1000, update_status_running)
+            # After 1 second, update the status
+            main_window.after(1000, update_status_running)
         
 
     main_window.after(0, update_status_running) 
 
-    func(gl_file_schedules, gl_file_groups, gl_map_groups, gl_classrooms, gl_academic_term)
+    valid_process = func(gl_file_schedules, gl_file_groups, gl_map_groups, gl_classrooms, gl_academic_term)
 
-    main_window.after(10, main_window.destroy)
+    on_stop()
+    update_start_window()
+    settings_window.destroy()
+
+    if valid_process:
+        tk.messagebox.showinfo('EventsXML', 'XML File Generated:\n\nCheck EventsFolder.')
+
+
 
 def run_thread(name, func):
 

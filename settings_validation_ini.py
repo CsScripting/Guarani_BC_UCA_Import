@@ -9,29 +9,29 @@ def settings_validation_fields(file_schedules:str, file_groups:str, value_btt:st
 
     try: 
         
-        #Check if File existe on folder
-        settValidation.verify_file_settings(file_schedules, file_groups, value_btt)
-
+        #Check folder
+        settValidation.validation_folder()
         
+        #Check if File existe on folder
+        settValidation.verify_file_settings(file_schedules, file_groups, value_btt, value_map_groups)
+
         #ValidacionesFile
-        settValidation.verify_columns_files(file_schedules, file_groups, value_insert_classrooms)
-
-        #SWITCH Cases:
-
-        if (value_map_groups == 1):
-
-            print('val')
+        settValidation.verify_columns_files(file_schedules, file_groups, value_map_groups, value_insert_classrooms)
 
         return(error_exception)
+ 
 
     except settValidation.ValidationFolder:
 
-        messagebox.showerror('Validation Folder', 'File ' + file_schedules + ' must be inserted on ' + v.xlsx_dir + ' !!')
-        
-
+        messagebox.showerror('Validation Folder', 'Files ' + file_schedules + ' must be inserted on folder ' + v.xlsx_dir + ' !!')
+    
     except settValidation.FileNameInserted as e:
 
         messagebox.showerror('Validation File', 'File ' + e.error_value + '  does not existe on folder ' + v.xlsx_dir + ' !!')
+
+    except settValidation.FileHistoricNotInserted as e:
+
+        messagebox.showerror('Validation File', 'To generate with STUDENT HISTORIC:\n\n Insert ' + e.error_value + '  on folder ' + v.xlsx_dir + ' !!')
         
     except settValidation.FileNameNotInserted as e:
 
@@ -79,7 +79,14 @@ def settings_validation_fields(file_schedules:str, file_groups:str, value_btt:st
                                v.g_cons_limit+ ' - ' + v.v_comision+ ' - ' + v.v_subcomision+ ' - ' + v.g_nombre_comision+ ' - ' + \
  					           v.v_section+ ' - ' + v.g_agreggated_groups
 
-        messagebox.showerror('Check Sheet' + e.error_value, 'Possible Columns Names:\n\n' + columns_original)
+        if e.error_value == v.sheet_historic:
 
+            columns_original = v.v_mod_cod + ' - ' + v.v_typology+ ' - ' + v.v_section+ ' - ' + v.v_mod_name+ ' - ' + \
+                               v.g_nombre_comision+ ' - ' + v.v_students + ' - ' + v.g_plan_cod
 
+        messagebox.showerror('Check Sheet ' + e.error_value, 'Possible Columns Names:\n\n' + columns_original)
+
+    except settValidation.ErrorSheetFileHistoric as e:
+
+        messagebox.showerror('Check Sheet'  , 'File '+ e.error_value + ' must have sheet:\n\n' + 'Datos')
   

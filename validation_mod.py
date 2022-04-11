@@ -15,8 +15,6 @@ def cleaning_data (df):
 	df = df.apply(lambda x: x.str.strip())
 	df.columns = df.columns.str.strip()
 	df = df.replace(r'^\s*$', np.nan, regex=True)
-	#valid_data =  df[df.notnull().all(axis =1)]
-	#invalid_data = df[df.isnull().any(axis =1)]
 	
 	return (df)
 
@@ -33,7 +31,8 @@ def group_entities(df, list_series, sep = ',', sort_flag = True):
 
 def read_data(events_file, groups_file, check_classroom : int, map_groups : int):
 	
-	df_historic : DataFrame()
+	df_historic : DataFrame() = []
+	df_salas : DataFrame() = []
 	directory_files = './' + xlsx_dir	+ '/'
 	
 
@@ -41,7 +40,7 @@ def read_data(events_file, groups_file, check_classroom : int, map_groups : int)
 	val_null = ['-1.#IND', '1.#QNAN', '1.#IND', '-1.#QNAN', '#N/A N/A', 
 				'#N/A', 'N/A', 'n/a', '', '#NA', 'NULL', 'null', 'NaN', '-NaN', 'nan', '-nan', '']
 
-
+	
 	df_events = pd.read_excel (directory_files + events_file, sheet_horarios, dtype = 'str', keep_default_na=False, na_values=val_null)
 	df_courses = pd.read_excel (directory_files + events_file, sheet_course, dtype = 'str', keep_default_na=False, na_values=val_null)
 	df_grupos = pd.read_excel (directory_files + groups_file, sheet_grupos, dtype = 'str', keep_default_na=False, na_values=val_null)
@@ -50,11 +49,10 @@ def read_data(events_file, groups_file, check_classroom : int, map_groups : int)
 
 		df_historic = pd.read_excel (directory_files + 'HistoricoInscriptos.xlsx', 'Datos', dtype = 'str', keep_default_na=False, na_values=val_null)
 	
-	if check_classroom == 1:
+	if (check_classroom == 1):
 
 		df_salas = pd.read_excel (directory_files + events_file , sheet_classrooms, dtype = 'str', keep_default_na=False, na_values=val_null)
 	
-
 		df_events = df_events [[v_comision, v_subcomision, v_day, v_hour_begin,
 								v_hour_end, v_typology, v_mod_cod, v_section,
 								v_students, v_group, v_weeks,
@@ -63,8 +61,6 @@ def read_data(events_file, groups_file, check_classroom : int, map_groups : int)
 
 									
 		df_events.drop_duplicates(inplace = True)
-
-		return (df_events, df_grupos, df_courses, df_salas, df_historic)
 
 	else:
 
@@ -77,12 +73,11 @@ def read_data(events_file, groups_file, check_classroom : int, map_groups : int)
 									
 		df_events.drop_duplicates(inplace = True)
 
-		return (df_events, df_grupos, df_courses, df_historic)
+	return (df_events, df_grupos, df_courses, df_salas, df_historic)
 
 
 
-
-def check_nulls(df, check_classrooms):
+def check_nulls(df : DataFrame, check_classrooms : int, name_file_validation):
 
 	if check_classrooms == 1:
 
@@ -100,6 +95,7 @@ def check_nulls(df, check_classrooms):
 
 	#remove duplicated because teacher lines
 	df.drop_duplicates(inplace = True)  
+
 	  
 	df[v_students] = df[v_students].fillna('0')
 
@@ -109,50 +105,33 @@ def check_nulls(df, check_classrooms):
 	
 	if not df_null.empty:
 
-
-		dir_file = './New_Files'
-		timestr = t.strftime("_%Y%m%d_%H%M%S")
-
-		if os.path.isdir(dir_file):
-
-			df_null.to_excel('./New_Files/NullValues' + timestr + '.xlsx', 'NullValues', index = False )
-
-		else:
-			os.mkdir(dir_file)
-			df_null.to_excel('./New_Files/NullValues' + timestr + '.xlsx', 'NullValues', index = False )
+		sheet_name = 'NullValues'
+		write_file (df_null, name_file_validation + '.xlsx', sheet_name)
 	
 	#Extract all null values
 	df = df.dropna(axis=0, how ='any').copy()
-	  
 
 	return (df)
 
 
-def verify_students_null (df):
+def verify_students_null (df : DataFrame, name_file_validation : str):
 
 	df[v_students] = df[v_students].astype(int)
 	df_events_wrong_number_students = df[df[v_students] <= 0].copy()
 	
 	df = df[df[v_students] >= 0]
+
 		
 	
 	if not df_events_wrong_number_students.empty:
 
-		dir_file = './New_Files'
-		timestr = t.strftime("_%Y%m%d_%H%M%S")
-
-		if os.path.isdir(dir_file):
-
-			df_events_wrong_number_students.to_excel('./New_Files/StudentsNull' + timestr + '.xlsx', 'StudentsNull', index = False )
-
-		else:
-			os.mkdir(dir_file)
-			df_events_wrong_number_students.to_excel('./New_Files/StudentsNull' + timestr + '.xlsx', 'StudentsNull', index = False )
+		sheet_name = 'StudentsNull'
+		write_file (df_events_wrong_number_students, name_file_validation + '.xlsx', sheet_name)
 
 
 	return (df)
 
-def get_name_salas_btt(df_events, df_salas):
+def get_name_salas_btt(df_events : DataFrame, df_salas : DataFrame, name_file_validation : str):
 
 	flag_salas = False
 
@@ -177,23 +156,9 @@ def get_name_salas_btt(df_events, df_salas):
 
 	if not df_not_match_sala.empty:
 
-
-		# Verificar a possibilidade de mapear as salas
-
-		dir_file = './New_Files'
-		timestr = t.strftime("_%Y%m%d_%H%M%S")
-
-		if os.path.isdir(dir_file):
-
-			path_file = './New_Files/Asign_Salas'+ timestr + '.xlsx'
-			df_not_match_sala.to_excel(path_file, 'NotMatchSalas', index = False )
-
-		else:
-
-			path_file = './New_Files/Asign_Salas'+ timestr + '.xlsx'
-			df_not_match_sala.to_excel(path_file, 'NotMatchSalas', index = False )
-		
-
+		sheet_name = 'NotMapClassroom'
+		write_file (df_not_match_sala, name_file_validation + '.xlsx', sheet_name)
+	
 	return (df_map_classrooms)
 
 
@@ -207,32 +172,19 @@ def replace_minutes_hours(df):
 	return (df)
 
 
-def verify_hour_begin_end(df):
-
-	path_file = './New_Files/Incomplete_Data.xlsx'
-	
-
-	if os.path.exists(path_file):
-		
-		os.remove(path_file)
+def verify_hour_begin_end(df: DataFrame, name_file_validation : str):
 
 	df_wrong_hours = df[df[v_hour_begin] >= df[v_hour_end]]
 	df_correct_hours = df[df[v_hour_begin] < df[v_hour_end]]
 
 
 	if not df_wrong_hours.empty:
-	
 
-		if os.path.isfile(path_file):
-				
-				write_exist_file(df_wrong_hours, './New_Files/Incomplete_Data.xlsx', 'HourBegin>HourEnd')
-				
-		else:
-		
-				df_wrong_hours.to_excel('./New_Files/Incomplete_Data.xlsx', 'HourBegin>HourEnd', index = False )
+		sheet_name = 'HourBegin>HourEnd'
+		write_file (df_wrong_hours, name_file_validation + '.xlsx', sheet_name)
 
 
-	return (df_correct_hours, df_wrong_hours)
+	return (df_correct_hours)
 
 
 def sigla(name):
@@ -242,7 +194,7 @@ def sigla(name):
 					new_sigla += name[i]
 	return new_sigla
 
-def join_curriculum (df_events, df_courses, df_groups, check_classrooms):
+def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_file_validation):
 	
 	df_events = pd.merge(left = df_events, right = df_courses, how = 'left', left_on = v_course_code , right_on = c_courses_code, indicator = True)
 
@@ -251,17 +203,10 @@ def join_curriculum (df_events, df_courses, df_groups, check_classrooms):
 
 
 	if not df_course_not_map.empty:
-			
 
-		path_file = './New_Files/Incomplete_Data.xlsx'
+		sheet_name = 'NotMapCarrera'
+		write_file (df_course_not_map, name_file_validation + '.xlsx', sheet_name)	
 
-		if os.path.isfile(path_file):
-				
-				write_exist_file(df_course_not_map, './New_Files/Incomplete_Data.xlsx', 'NotMapCarrera')
-				
-		else:
-		
-				df_course_not_map.to_excel('./New_Files/Incomplete_Data.xlsx', 'NotMapCarrera', index = False )
 
 	df_events_map.drop(columns = ['_merge', c_courses_code], inplace = True)
 
@@ -289,21 +234,9 @@ def join_curriculum (df_events, df_courses, df_groups, check_classrooms):
 
 
 	if not df_groups_not_map.empty:
-			
 
-		path_file = './New_Files/Incomplete_Data.xlsx'
-
-		if os.path.isfile(path_file):
-				
-				write_exist_file(df_groups_not_map, './New_Files/Incomplete_Data.xlsx', 'NotMapGroups')
-				
-		else:
-		
-				df_groups_not_map.to_excel('./New_Files/Incomplete_Data.xlsx', 'NotMapGroups', index = False)
-
-
-	
-
+		sheet_name = 'NotMapGroups'
+		write_file (df_groups_not_map, name_file_validation + '.xlsx', sheet_name)	
 
 	df_events_map_g[v_bullet_group] = df_events_map_g[v_plan_name] + '_' + df_events_map_g[g_nombre_comision]
 
@@ -365,11 +298,13 @@ def grouped_data (df : DataFrame, check_classrooms, check_groups):
 	df  = group_entities(df, list_series, sep = '##')
 	df[v_students] = df[v_students].str.split('##').str[0]
 
-	# 2º Agregar comissões que por vezes têm as mesma turmas associadas a diferentes disciplinas...para o mesmo id de Guarani
-	# Neste caso são somados os numeros de alunos:
-
+	'''
+	2º Agregar comissões diferentes disciplinas...para o mesmo id de Guarani;
+	 - Neste caso são somados os numeros de alunos !!!
+	 - No caso de Guarani so admitir um espaço agregar tambem por sala e edificio !!!
+	'''
 	list_series = [v_hour_begin, v_hour_end, v_day,
-				   v_weeks, v_id_event_guarani]
+				   v_weeks, s_sala_name, s_sala_edificio, v_id_event_guarani]
 	
 	df  = group_entities(df, list_series, sep = ';;')
 
@@ -380,6 +315,8 @@ def grouped_data (df : DataFrame, check_classrooms, check_groups):
 
 	df [v_type_comission] =  np.where((df[v_comision].str.count(';;') + 1 > 1), #mais de uma comissão
 									  1, 0)
+	
+	#Comissiones compartidas - manage classroom 305 Magno;;305Magno ... exemplo de asignacion 12313
 	
 	#Para mais tarde gerir dominantes e dominadas
 	df [v_mod_comun] = np.where((df[v_comision].str.count(';;') + 1 > 1) & #se tiver mais de uma comissão
@@ -496,3 +433,28 @@ def map_students_number_historic (df_event : DataFrame, df_historic : DataFrame)
 
 
 	return(df_event)
+
+
+def filter_events_grouped_students_null (df : DataFrame, name_file_validation : str):
+
+	# Numero de alunos so pode ser 0 ou maior que zero, já retirados em metodo anterior numero de alunos inferior a Zero...
+	
+	df_events_to_import = df[df[v_students] != '0']
+
+	df_events_not_import = df[df[v_students] == '0']
+
+	if not df_events_to_import.empty:
+
+		sheet_name = 'EventToImport'
+		write_file (df_events_to_import, name_file_validation + '.xlsx', sheet_name)
+
+	if not df_events_not_import.empty:
+
+		sheet_name = 'EventStudentZero'
+		write_file (df_events_not_import, name_file_validation + '.xlsx', sheet_name)
+	
+
+
+
+	return (df_events_to_import)
+

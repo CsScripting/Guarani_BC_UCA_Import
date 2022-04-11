@@ -8,6 +8,8 @@ import time as t
 version = '3.0'
 xlsx_dir = 'DataProcess'
 
+v_events_dir = 'EventsFolder'
+
 #Names Sheets Values
 
 sheet_horarios = 'Horarios'
@@ -111,7 +113,23 @@ plan_pai = 'plan_dominate'
 
 id_add_student = 'ID_ADD_STUDENT'
 
-# mod_filho = 
+# Name File Historic
+
+file_historic = 'HistoricoInscriptos.xlsx'
+sheet_historic = 'Datos' 
+
+
+#Columns DataFrame validation Process:
+
+v_variables_process ='VariablesProcess'
+v_variables_values = 'Values'
+
+v_file_events = 'File Schedules'
+v_file_groups = 'File Groups'
+v_acad_term_btt = 'Acad. Term BTT'
+v_historic_groups = 'Historic Groups'
+v_with_classrooms = 'With Classrooms'
+
 
 # -- variables -END- #
 
