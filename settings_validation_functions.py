@@ -1,10 +1,9 @@
-from numpy import insert
 from library import (
     os,
-    pd)
+    ExcelFile,
+    openpyxl)
 
 import validation_mod as v
-import openpyxl
 
 #Excepciones Settings Process
 class ValidationFolder(Exception):
@@ -111,7 +110,7 @@ def verify_columns_files(file_schedules : str, file_groups:str,  check_historic 
     if check_historic == 1:
 
         path_to_historic = './' + v.xlsx_dir + '/' + v.file_historic
-        file_historic_read = pd.ExcelFile(path_to_historic)
+        file_historic_read = ExcelFile(path_to_historic)
         sheets_file_historic = file_historic_read.sheet_names
 
         sheets_original_historic = [v.sheet_historic]
@@ -125,7 +124,7 @@ def verify_columns_files(file_schedules : str, file_groups:str,  check_historic 
 
 
     #Check Sheet Files (Schedules)
-    file_schedules_read = pd.ExcelFile(path_to_file_schedules)
+    file_schedules_read = ExcelFile(path_to_file_schedules)
     sheets_file_schedules = file_schedules_read.sheet_names
 
     if insert_classrooms == 1:
@@ -143,7 +142,7 @@ def verify_columns_files(file_schedules : str, file_groups:str,  check_historic 
 
 
     #Check Sheet Files (Groups)
-    file_group_read = pd.ExcelFile(path_to_file_groups)
+    file_group_read = ExcelFile(path_to_file_groups)
     sheets_file_group = file_group_read.sheet_names
     sheets_original_group = ['Grupos']
     check_sheets_name_group =  all(elem in sheets_file_group for elem in sheets_original_group)

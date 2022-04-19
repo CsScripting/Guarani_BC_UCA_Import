@@ -1,5 +1,4 @@
 import AppUI as app 
-import os
 
 def main ():
 

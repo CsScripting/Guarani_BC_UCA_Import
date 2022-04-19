@@ -1,22 +1,15 @@
 import process_data_validation as procVal
-from pandas.core.frame import DataFrame
-from general_mod import group_unique_entities
-import os
-import variables_mod as v
+from variables_mod import *
 import validation_mod as val
 import xml_mod as xml_m
 
-import tkinter as tk
-from tkinter import *
-from tkinter import messagebox
-from threading import Thread
-
 from library import(
-	codecs
+	codecs, 
+    messagebox
 )
 
 # only dev mod - check errores
-import traceback
+# import traceback
 
 def begin_process(file_schedules : str,  file_groups : str, map_groups : int, check_classrooms : int, academic_term : str):
 
@@ -77,7 +70,8 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
 
         else:
 
-            df_events.drop(columns=[v.v_section, v.g_nombre_comision])
+            # No caso de verificar o historico faz drop de estas colunas em metodo map_students_number_historic
+            df_events.drop(columns=[v_section, g_nombre_comision])
 
         #Agrupar Eventos para inserir em XML:
 
@@ -101,7 +95,7 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
         file_name = '/Horarios_UCA_'
 
         path_file_xml = process_folder + file_name + process_code + '.xml'
-        XML_AGREGADO = (v.xml_header + '\n'.join(df_events.apply(xml_m.xml_btt,args = (check_classrooms,), axis=1)) + '\n' + v.xml_footer)
+        XML_AGREGADO = (xml_header + '\n'.join(df_events.apply(xml_m.xml_btt,args = (check_classrooms,), axis=1)) + '\n' + xml_footer)
         
         with codecs.open(path_file_xml ,'w', 'utf-8') as f:
             f.write(XML_AGREGADO)
@@ -117,6 +111,6 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
         messagebox.showerror('Error', 'Contact:\n\n' + 'info@bulletsolutions.com')
 
         #Only to Debug
-        print (traceback.format_exc())
+        # print (traceback.format_exc())
 
        

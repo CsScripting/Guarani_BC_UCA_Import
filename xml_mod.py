@@ -1,8 +1,4 @@
 from variables_mod import *
-from library import(
-	codecs
-)
-
 
 def xml_btt (df, check_classrooms):
 

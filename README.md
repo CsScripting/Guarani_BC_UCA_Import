@@ -9,7 +9,7 @@ C:\Users\Paulo Fernandes\Desktop\LocalRepositories\Release_Environment\Deploy_GU
 
 Create File:
 
-pyinstaller --noconsole --onefile --icon="log.ico" --add-data="log.ico;." ProcesoGuaraniBC.py
+pyinstaller --noconsole --onefile --icon="log.ico" --add-data="log.ico;." ProcesoGuaraniBC.py --version-file version_info_GUARANI_BC_UCA.txt
 
 #Variaveis associadas a Processos:
 
@@ -21,12 +21,14 @@ Parametro 1:
 
 Parametro 2:
 # Historic Groups
-
 * Se consultar o historico de alunos vai a folder de DataProcess verificar o Ficheiro de HistoricoInscriptos.xlsx
 
 
+--> Verificar caso de quando se importa desde Guarani, se só tem sempre um espaço associado
 #Verificar com Juan se Guarani so admite associada a uma asignacion...Não estou a gerir para os casos de ter mais de uma salas...
 Importante ver o ponto acima...
+
+Analisar metodo de grouped_data em main_mod para o caso descrito acima...
 
 # Comentario associado:
 '''
@@ -36,7 +38,7 @@ Importante ver o ponto acima...
 '''
 
 
-# Número de alunos de comissões e comissões compartidas:
+# (Done)Número de alunos de comissões e comissões compartidas:
 - Não somar dentro de mesma comissão;
 - Somar diferentes comissões dentro de mesmo id de asignación;
 
@@ -48,3 +50,5 @@ Importante ver o ponto acima...
 
 # Caso de numero de alunos diferente de Int !!!
 # Caso de formato de data errado !!!
+
+# Não existe relação de processos a executar...Pode gerar com salas ou não !! Segundo historico ou não !!

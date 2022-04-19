@@ -1,5 +1,4 @@
-
-from main_mod import *
+from main_mod import begin_process
 import settings_validation_ini as settIni
 from library import (
     tk,
@@ -7,8 +6,6 @@ from library import (
     sys,
     os,
     Thread)
-
-
 
 global main_window
 main_window = tk.Tk()
@@ -208,6 +205,8 @@ def disable_link_settings():
 def disable_link_edit():
 
     link_edit["state"] = 'disable'
+    link_edit.config(cursor = "")
+    link_edit.unbind('<Button-1>')
     
 
 def enable_link_settings():
@@ -220,7 +219,7 @@ def enable_link_settings():
 def enable_link_edit():
 
     link_edit["state"] = "normal"
-    link.config(cursor= "")
+    link.config(cursor= "hand2")
     link_edit.bind("<Button-1>", lambda e: enable_settings()) 
 
 
@@ -276,6 +275,7 @@ def enable_button_start():
     button_start['background'] = '#ffe6cc'
     button_start ['cursor']="hand2"
     button_start.config(command = on_click_two_threads) 
+    
 
 
 def disable_button_start():
@@ -283,6 +283,13 @@ def disable_button_start():
     button_start['state'] = 'disable'
     button_start['background'] = '#d1e0e0'
     button_start ['cursor']=""
+
+def disable_button_ready_settings():
+
+    button_validation['state'] = 'disable'
+    button_validation['background'] = '#d1e0e0'
+    button_validation ['cursor']=""
+
 
 def closing_behavior():
 
@@ -426,4 +433,6 @@ def run_thread(name, func):
      
 def on_click_two_threads():
 
+    disable_link_edit()
+    disable_button_ready_settings()
     run_thread('process', begin_process)

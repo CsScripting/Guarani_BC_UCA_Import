@@ -1,12 +1,15 @@
-from distutils.command import check
-import os.path
-from numpy import True_
-
-from pandas.core.frame import DataFrame
-from general_mod import *
+from general_mod import write_file, weekly_date, asign_weeks
 from variables_mod import *
-import xlsxwriter
 class HaltException(Exception): pass
+
+from library import (
+	DataFrame,
+	read_excel,
+	merge,
+	to_datetime,
+	where,
+	nan
+	)
 
 # import qgrid as gd
 
@@ -14,7 +17,7 @@ def cleaning_data (df):
 	
 	df = df.apply(lambda x: x.str.strip())
 	df.columns = df.columns.str.strip()
-	df = df.replace(r'^\s*$', np.nan, regex=True)
+	df = df.replace(r'^\s*$', nan, regex=True)
 	
 	return (df)
 
@@ -41,17 +44,17 @@ def read_data(events_file, groups_file, check_classroom : int, map_groups : int)
 				'#N/A', 'N/A', 'n/a', '', '#NA', 'NULL', 'null', 'NaN', '-NaN', 'nan', '-nan', '']
 
 	
-	df_events = pd.read_excel (directory_files + events_file, sheet_horarios, dtype = 'str', keep_default_na=False, na_values=val_null)
-	df_courses = pd.read_excel (directory_files + events_file, sheet_course, dtype = 'str', keep_default_na=False, na_values=val_null)
-	df_grupos = pd.read_excel (directory_files + groups_file, sheet_grupos, dtype = 'str', keep_default_na=False, na_values=val_null)
+	df_events = read_excel (directory_files + events_file, sheet_horarios, dtype = 'str', keep_default_na=False, na_values=val_null)
+	df_courses = read_excel (directory_files + events_file, sheet_course, dtype = 'str', keep_default_na=False, na_values=val_null)
+	df_grupos = read_excel (directory_files + groups_file, sheet_grupos, dtype = 'str', keep_default_na=False, na_values=val_null)
 
 	if map_groups == 1:
 
-		df_historic = pd.read_excel (directory_files + 'HistoricoInscriptos.xlsx', 'Datos', dtype = 'str', keep_default_na=False, na_values=val_null)
+		df_historic = read_excel (directory_files + 'HistoricoInscriptos.xlsx', 'Datos', dtype = 'str', keep_default_na=False, na_values=val_null)
 	
 	if (check_classroom == 1):
 
-		df_salas = pd.read_excel (directory_files + events_file , sheet_classrooms, dtype = 'str', keep_default_na=False, na_values=val_null)
+		df_salas = read_excel (directory_files + events_file , sheet_classrooms, dtype = 'str', keep_default_na=False, na_values=val_null)
 	
 		df_events = df_events [[v_comision, v_subcomision, v_day, v_hour_begin,
 								v_hour_end, v_typology, v_mod_cod, v_section,
@@ -89,9 +92,9 @@ def check_nulls(df : DataFrame, check_classrooms : int, name_file_validation):
 	else:
 
 		df = df [[v_comision, v_subcomision, v_day, v_hour_begin, v_hour_end, 
-				v_typology,v_mod_cod, v_mod_name, v_section, 
-				v_students, v_group, v_weeks, 
-				v_year,v_course_code, v_codigo_plan, v_id_event_guarani]]
+				  v_typology,v_mod_cod, v_mod_name, v_section, 
+				  v_students, v_group, v_weeks, 
+				  v_year,v_course_code, v_codigo_plan, v_id_event_guarani]]
 
 	#remove duplicated because teacher lines
 	df.drop_duplicates(inplace = True)  
@@ -137,11 +140,10 @@ def get_name_salas_btt(df_events : DataFrame, df_salas : DataFrame, name_file_va
 
 	df = df_events.copy()
 
-
 	df_salas[v_classrooms_code_guarani] = df_salas[s_sala_code].str.split('_').str[-1:].str.join(',')
 
 
-	df = pd.merge(left= df, right = df_salas, how = 'left', on = v_classrooms_code_guarani, indicator = True)
+	df = merge(left= df, right = df_salas, how = 'left', on = v_classrooms_code_guarani, indicator = True)
 
 	df_not_match_sala = df[df['_merge'] == 'left_only'].copy()
 
@@ -166,8 +168,8 @@ def replace_minutes_hours(df):
 
 	## Round values minutes to 15min
 
-	df[v_hour_begin] = pd.to_datetime(df[v_hour_begin]).dt.round('15min').dt.strftime('%H:%M:%S')
-	df[v_hour_end] = pd.to_datetime(df[v_hour_end]).dt.round('15min').dt.strftime('%H:%M:%S')
+	df[v_hour_begin] = to_datetime(df[v_hour_begin]).dt.round('15min').dt.strftime('%H:%M:%S')
+	df[v_hour_end] = to_datetime(df[v_hour_end]).dt.round('15min').dt.strftime('%H:%M:%S')
 		
 	return (df)
 
@@ -196,7 +198,7 @@ def sigla(name):
 
 def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_file_validation):
 	
-	df_events = pd.merge(left = df_events, right = df_courses, how = 'left', left_on = v_course_code , right_on = c_courses_code, indicator = True)
+	df_events = merge(left = df_events, right = df_courses, how = 'left', left_on = v_course_code , right_on = c_courses_code, indicator = True)
 
 	df_events_map = df_events[df_events['_merge'] == 'both'].copy()
 	df_course_not_map = df_events[df_events['_merge'] == 'left_only'].copy()
@@ -226,7 +228,7 @@ def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_fi
 	df_groups.drop_duplicates( keep = 'first', inplace = True)
 
 
-	df_events_map = pd.merge(df_events_map, df_groups , how = 'left', on = [v_codigo_plan, v_comision, v_subcomision, v_section],
+	df_events_map = merge(df_events_map, df_groups , how = 'left', on = [v_codigo_plan, v_comision, v_subcomision, v_section],
 					indicator = True )
 
 	df_events_map_g = df_events_map[df_events_map['_merge'] == 'both'].copy()
@@ -240,7 +242,7 @@ def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_fi
 
 	df_events_map_g[v_bullet_group] = df_events_map_g[v_plan_name] + '_' + df_events_map_g[g_nombre_comision]
 
-	df_events_map_g [v_comision]= np.where(df_events_map_g[v_subcomision] != '0', df_events_map_g[v_comision] + '-' + df_events_map_g[v_subcomision],
+	df_events_map_g [v_comision]= where(df_events_map_g[v_subcomision] != '0', df_events_map_g[v_comision] + '-' + df_events_map_g[v_subcomision],
 							      		   df_events_map_g[v_comision])
 	
 	if check_classrooms == 1:
@@ -303,9 +305,16 @@ def grouped_data (df : DataFrame, check_classrooms, check_groups):
 	 - Neste caso são somados os numeros de alunos !!!
 	 - No caso de Guarani so admitir um espaço agregar tambem por sala e edificio !!!
 	'''
-	list_series = [v_hour_begin, v_hour_end, v_day,
-				   v_weeks, s_sala_name, s_sala_edificio, v_id_event_guarani]
+
+	if check_classrooms == 1:
+		list_series = [v_hour_begin, v_hour_end, v_day,
+					   v_weeks, s_sala_name, s_sala_edificio, v_id_event_guarani]
 	
+	else:
+
+		list_series = [v_hour_begin, v_hour_end, v_day,
+					   v_weeks, v_id_event_guarani] 
+		
 	df  = group_entities(df, list_series, sep = ';;')
 
 
@@ -313,13 +322,13 @@ def grouped_data (df : DataFrame, check_classrooms, check_groups):
 	df[v_students] = df[v_students].apply(lambda x: sum(map(int, x.split(';;'))))
 	df[v_students] = df [v_students].astype(str)
 
-	df [v_type_comission] =  np.where((df[v_comision].str.count(';;') + 1 > 1), #mais de uma comissão
+	df [v_type_comission] =  where((df[v_comision].str.count(';;') + 1 > 1), #mais de uma comissão
 									  1, 0)
 	
 	#Comissiones compartidas - manage classroom 305 Magno;;305Magno ... exemplo de asignacion 12313
 	
 	#Para mais tarde gerir dominantes e dominadas
-	df [v_mod_comun] = np.where((df[v_comision].str.count(';;') + 1 > 1) & #se tiver mais de uma comissão
+	df [v_mod_comun] = where((df[v_comision].str.count(';;') + 1 > 1) & #se tiver mais de uma comissão
 	                                 (df[v_mod_cod].apply(lambda x: ';;'.join(set(x.split(';;')))).str.count(';;') +1 >1), # se tiver mais de uma disciplina
 									  1, 0)
 	
@@ -336,7 +345,7 @@ def insert_name_section (df: DataFrame):
 	# No caso de comissão compartida fica inserir a string C_Compartida...
 	# No caso de comissãp não compartida segue o padrão de Comissão_SubComissãp_IdGuaraní
  
-	df [v_section]= np.where((df[v_type_comission] == 1) , 'Com.Comp_' + df[v_id_event_guarani],
+	df [v_section]= where((df[v_type_comission] == 1) , 'Com.Comp_' + df[v_id_event_guarani],
 							 df[v_comision] + '_' + df[v_id_event_guarani])
 
 
@@ -371,8 +380,8 @@ def selec_data_comissiones_compartidas_to_import(df: DataFrame, check_classroom 
 						v_day, v_mod_name, v_mod_acron, v_mod_cod, v_mod_area, s_sala_name, s_sala_edificio, v_weeks,
 						v_typology, v_bullet_group, v_plan_name, g_plan_cod, v_year, c_courses_name, c_courses_sigla, v_course_code, v_type_comission]].copy()
 
-		df_to_import[s_sala_name] = np.where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_name].str.split(';;').str[0], df_to_import[s_sala_name])
-		df_to_import[s_sala_edificio] = np.where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_edificio].str.split(';;').str[0], df_to_import[s_sala_edificio])
+		df_to_import[s_sala_name] = where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_name].str.split(';;').str[0], df_to_import[s_sala_name])
+		df_to_import[s_sala_edificio] = where(df_to_import[v_type_comission] == '1', df_to_import[s_sala_edificio].str.split(';;').str[0], df_to_import[s_sala_edificio])
 
 	else:
 
@@ -396,13 +405,13 @@ def selec_data_comissiones_compartidas_to_import(df: DataFrame, check_classroom 
 
 
 	#Select only one module to generate insert event on BC.
-	df_to_import[v_mod_name] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_name].str.split(';;').str[0], df_to_import[v_mod_name]) 
-	df_to_import[v_mod_cod] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_cod].str.split(';;').str[0], df_to_import[v_mod_cod]) 
-	df_to_import[v_mod_acron] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_acron].str.split(';;').str[0], df_to_import[v_mod_acron]) 
-	df_to_import[v_mod_area] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_area].str.split(';;').str[0], df_to_import[v_mod_area])
+	df_to_import[v_mod_name] = where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_name].str.split(';;').str[0], df_to_import[v_mod_name]) 
+	df_to_import[v_mod_cod] = where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_cod].str.split(';;').str[0], df_to_import[v_mod_cod]) 
+	df_to_import[v_mod_acron] = where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_acron].str.split(';;').str[0], df_to_import[v_mod_acron]) 
+	df_to_import[v_mod_area] = where(df_to_import[v_type_comission] == '1', df_to_import[v_mod_area].str.split(';;').str[0], df_to_import[v_mod_area])
 
 
-	df_to_import[v_typology] = np.where(df_to_import[v_type_comission] == '1', df_to_import[v_typology].str.split(';;').str[0], df_to_import[v_typology])
+	df_to_import[v_typology] = where(df_to_import[v_type_comission] == '1', df_to_import[v_typology].str.split(';;').str[0], df_to_import[v_typology])
 
 	df_to_import.insert(0, v_event_name, df_to_import[v_section] + '_' + df_to_import[v_mod_name])
 
@@ -422,11 +431,11 @@ def map_students_number_historic (df_event : DataFrame, df_historic : DataFrame)
 
 	df_historic.rename(columns = {v_students : 'students_historic'}, inplace=True)
 	df_event [v_students] = df_event[v_students].astype(int)
-	df_event = pd.merge(left = df_event, right = df_historic, how = 'left', on = [v_mod_cod, v_typology, v_section, v_mod_name, g_nombre_comision, g_plan_cod], indicator=True )
+	df_event = merge(left = df_event, right = df_historic, how = 'left', on = [v_mod_cod, v_typology, v_section, v_mod_name, g_nombre_comision, g_plan_cod], indicator=True )
 
 	df_event['students_historic'].fillna('0', inplace = True)
 	df_event['students_historic'] = df_event['students_historic'].astype(int) 
-	df_event[v_students] = np.where((df_event[v_students] < 10) & (df_event['_merge'] == 'both') & (df_event['students_historic'] > df_event[v_students]), 
+	df_event[v_students] = where((df_event[v_students] < 10) & (df_event['_merge'] == 'both') & (df_event['students_historic'] > df_event[v_students]), 
 									df_event['students_historic'], df_event[v_students] )
 
 	df_event.drop(columns=[g_nombre_comision, v_section, 'students_historic', '_merge'], inplace = True)

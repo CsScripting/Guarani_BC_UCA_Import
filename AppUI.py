@@ -1,4 +1,3 @@
-from main_mod import *
 import app_ui_views as view
 
 def UI():
