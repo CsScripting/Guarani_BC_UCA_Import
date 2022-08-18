@@ -127,10 +127,13 @@ def verify_columns_files(file_schedules : str, file_groups:str,  check_historic 
     file_schedules_read = ExcelFile(path_to_file_schedules)
     sheets_file_schedules = file_schedules_read.sheet_names
 
-    if insert_classrooms == 1:
-        sheets_original_schedules = ['Horarios', 'Carreras', 'Salas']
-    else:
-        sheets_original_schedules = ['Horarios', 'Carreras']
+    # Todas as folhas obrigatorias para ambos os processos, com ou sem salas ... 
+    # Insere com salas: consultar salas a inserir...
+    # Insere sem salas: criar ficheiro com a relação de salas ...
+    
+    sheets_original_schedules = ['Horarios', 'Carreras', 'Salas']
+    
+    
 
     check_sheets_name_schedule =  all(elem in sheets_file_schedules for elem in sheets_original_schedules)
 
@@ -175,23 +178,22 @@ def verify_columns_files(file_schedules : str, file_groups:str,  check_historic 
     if not check_columns_names_horarios:
         load_file_schedules.close()
         raise WrongColumnsFile(v.sheet_horarios)
+    
 
-    if insert_classrooms == 1:
+    #Check Columns Salas
+    load_classrooms_sheet = load_file_schedules[v.sheet_classrooms]
+    columns_file_salas=[]
 
-        #Check Columns Salas
-        load_classrooms_sheet = load_file_schedules[v.sheet_classrooms]
-        columns_file_salas=[]
+    for cell in load_classrooms_sheet[1]:
+        columns_file_salas.append(cell.value)
+    
+    columns_salas_original = [v.s_sala_name, v.s_sala_code, v.s_sala_caracteristic, v.s_sala_edificio]
 
-        for cell in load_classrooms_sheet[1]:
-            columns_file_salas.append(cell.value)
-        
-        columns_salas_original = [v.s_sala_name, v.s_sala_code, v.s_sala_edificio]
+    check_columns_names_salas =  all(elem in columns_file_salas for elem in columns_salas_original)
 
-        check_columns_names_salas =  all(elem in columns_file_salas for elem in columns_salas_original)
-
-        if not check_columns_names_salas:
-            load_file_schedules.close()
-            raise WrongColumnsFile(v.sheet_classrooms)
+    if not check_columns_names_salas:
+        load_file_schedules.close()
+        raise WrongColumnsFile(v.sheet_classrooms)
 
 
     #Check Columns Carreras

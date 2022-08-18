@@ -33,9 +33,9 @@ def create_xlsx_data_process(file_schedules : str, file_groups : str, folder : s
                                     v_variables_values : file_schedules}, ignore_index = True)
 
 
-    #Insert Name file Groups
-    df_process = df_process.append({v_variables_process : v_file_groups, 
-                                    v_variables_values : file_groups}, ignore_index = True)
+    #Insert Name file Groups (Verificar !!!!!!!!!)
+    # df_process = df_process.append({v_variables_process : v_file_groups, 
+    #                                 v_variables_values : file_groups}, ignore_index = True)
 
     #Insert Name file Groups
     df_process = df_process.append({v_variables_process : v_file_groups, 

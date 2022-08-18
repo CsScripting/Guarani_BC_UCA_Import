@@ -133,11 +133,16 @@ def start_settings_window():
     fileLabel_schedules = tk.Label(top_WindowGrid, text='File Schedules:', font="Segoe 8 italic", foreground="#009999")
     #Config textInsertion Schedules
     names_inserted_vars[0] = tk.Entry(top_WindowGrid,borderwidth=0,highlightthickness=1,highlightcolor='#ffb84d', width=20,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
+    #Default Value (only for DEV !!!)
+    names_inserted_vars[0].insert(0, 'horarios_04_11.xlsx')
 
     #Config label File Groups
     fileLabel_groups = tk.Label(top_WindowGrid, text='File Groups:', font="Segoe 8 italic", foreground="#009999")
     #Config textInsertion Groups
     names_inserted_vars[1] = tk.Entry(top_WindowGrid,borderwidth=0,highlightthickness=1,highlightcolor='#ffb84d', width=20,justify='left',font=("Segoe 8"),background="#ffe6cc", disabledbackground="#ffe6cc")
+    #Default Value (only for DEV !!!)
+    names_inserted_vars[1].insert(0, 'grupos_04_11.xlsx')
+
 
     #Config label File Schedules
     fileLabel_period_btt = tk.Label(top_WindowGrid, text='Acad. Term BTT:', font="Segoe 8 italic", foreground="#009999")

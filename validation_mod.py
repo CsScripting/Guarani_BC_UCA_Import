@@ -1,4 +1,5 @@
-from general_mod import write_file, weekly_date, asign_weeks
+from pandas import date_range
+from general_mod import write_file, weekly_date, asign_weeks, group_unique_entities
 from variables_mod import *
 class HaltException(Exception): pass
 
@@ -13,7 +14,7 @@ from library import (
 
 # import qgrid as gd
 
-def cleaning_data (df):
+def cleaning_data (df : DataFrame):
 	
 	df = df.apply(lambda x: x.str.strip())
 	df.columns = df.columns.str.strip()
@@ -48,13 +49,14 @@ def read_data(events_file, groups_file, check_classroom : int, map_groups : int)
 	df_courses = read_excel (directory_files + events_file, sheet_course, dtype = 'str', keep_default_na=False, na_values=val_null)
 	df_grupos = read_excel (directory_files + groups_file, sheet_grupos, dtype = 'str', keep_default_na=False, na_values=val_null)
 
+	df_salas = read_excel (directory_files + events_file , sheet_classrooms, dtype = 'str', keep_default_na=False, na_values=val_null)
+
 	if map_groups == 1:
 
 		df_historic = read_excel (directory_files + 'HistoricoInscriptos.xlsx', 'Datos', dtype = 'str', keep_default_na=False, na_values=val_null)
 	
 	if (check_classroom == 1):
 
-		df_salas = read_excel (directory_files + events_file , sheet_classrooms, dtype = 'str', keep_default_na=False, na_values=val_null)
 	
 		df_events = df_events [[v_comision, v_subcomision, v_day, v_hour_begin,
 								v_hour_end, v_typology, v_mod_cod, v_section,
@@ -99,8 +101,8 @@ def check_nulls(df : DataFrame, check_classrooms : int, name_file_validation):
 	#remove duplicated because teacher lines
 	df.drop_duplicates(inplace = True)  
 
-	  
-	df[v_students] = df[v_students].fillna('0')
+	#Todos os nulos, inclusive numero de alunos retirados à cabeça ... alterado para 3.0.1  
+	# df[v_students] = df[v_students].fillna('0')
 
 	df_null = df[df.isnull().any (axis=1)].copy()
 	df_null.fillna('NULL', inplace = True)
@@ -119,16 +121,27 @@ def check_nulls(df : DataFrame, check_classrooms : int, name_file_validation):
 
 def verify_students_null (df : DataFrame, name_file_validation : str):
 
+	df_check = df.copy()
+
+	df = df_check[df_check[v_students].str.isdigit()].copy()
+
+	df_not_valid = df_check[~df_check[v_students].str.isdigit()].copy()
+	
+	
 	df[v_students] = df[v_students].astype(int)
 	df_events_wrong_number_students = df[df[v_students] <= 0].copy()
 	
-	df = df[df[v_students] >= 0]
+	df = df[df[v_students] > 0]
 
+	if not df_not_valid.empty:
+
+		sheet_name = 'WrongStudentsNumber'
+		write_file (df_not_valid, name_file_validation + '.xlsx', sheet_name)
 		
 	
 	if not df_events_wrong_number_students.empty:
 
-		sheet_name = 'StudentsNull'
+		sheet_name = 'ZeroStudents'
 		write_file (df_events_wrong_number_students, name_file_validation + '.xlsx', sheet_name)
 
 
@@ -136,9 +149,11 @@ def verify_students_null (df : DataFrame, name_file_validation : str):
 
 def get_name_salas_btt(df_events : DataFrame, df_salas : DataFrame, name_file_validation : str):
 
-	flag_salas = False
 
 	df = df_events.copy()
+
+	df_salas.drop(columns=s_sala_caracteristic, inplace=True)
+	df_salas.drop_duplicates(inplace = True)
 
 	df_salas[v_classrooms_code_guarani] = df_salas[s_sala_code].str.split('_').str[-1:].str.join(',')
 
@@ -176,6 +191,7 @@ def replace_minutes_hours(df):
 
 def verify_hour_begin_end(df: DataFrame, name_file_validation : str):
 
+
 	df_wrong_hours = df[df[v_hour_begin] >= df[v_hour_end]]
 	df_correct_hours = df[df[v_hour_begin] < df[v_hour_end]]
 
@@ -198,6 +214,7 @@ def sigla(name):
 
 def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_file_validation):
 	
+	df_courses.drop_duplicates(inplace = True)
 	df_events = merge(left = df_events, right = df_courses, how = 'left', left_on = v_course_code , right_on = c_courses_code, indicator = True)
 
 	df_events_map = df_events[df_events['_merge'] == 'both'].copy()
@@ -243,7 +260,7 @@ def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_fi
 	df_events_map_g[v_bullet_group] = df_events_map_g[v_plan_name] + '_' + df_events_map_g[g_nombre_comision]
 
 	df_events_map_g [v_comision]= where(df_events_map_g[v_subcomision] != '0', df_events_map_g[v_comision] + '-' + df_events_map_g[v_subcomision],
-							      		   df_events_map_g[v_comision])
+								  		   df_events_map_g[v_comision])
 	
 	if check_classrooms == 1:
 		df_events_map_g = df_events_map_g [[v_comision, v_students, v_hour_begin, v_hour_end, v_day,
@@ -261,7 +278,7 @@ def join_curriculum (df_events, df_courses, df_groups, check_classrooms, name_fi
 
 		df_events_map_g = df_events_map_g [[v_comision, v_students, v_hour_begin, v_hour_end, v_day,
 											v_mod_name, v_mod_acron, v_mod_cod,
-										    v_weeks, 
+											v_weeks, 
 											v_typology,
 											v_bullet_group,v_plan_name, g_plan_cod, v_year,
 											c_courses_name, c_courses_sigla, v_course_code,g_nombre_comision,v_section, v_id_event_guarani]]
@@ -329,7 +346,7 @@ def grouped_data (df : DataFrame, check_classrooms, check_groups):
 	
 	#Para mais tarde gerir dominantes e dominadas
 	df [v_mod_comun] = where((df[v_comision].str.count(';;') + 1 > 1) & #se tiver mais de uma comissão
-	                                 (df[v_mod_cod].apply(lambda x: ';;'.join(set(x.split(';;')))).str.count(';;') +1 >1), # se tiver mais de uma disciplina
+									 (df[v_mod_cod].apply(lambda x: ';;'.join(set(x.split(';;')))).str.count(';;') +1 >1), # se tiver mais de uma disciplina
 									  1, 0)
 	
 	
@@ -368,6 +385,8 @@ def final_weeks(df):
 	df[v_weeks] = df['WEEKS_EVENT']
 	df.drop(columns = 'WEEKS_EVENT', inplace = True)
 	
+	# raise ParserError("Unknown string format: %s", timestr)
+
 	return (df)
 
 
@@ -446,7 +465,7 @@ def map_students_number_historic (df_event : DataFrame, df_historic : DataFrame)
 
 def filter_events_grouped_students_null (df : DataFrame, name_file_validation : str):
 
-	# Numero de alunos so pode ser 0 ou maior que zero, já retirados em metodo anterior numero de alunos inferior a Zero...
+	# Numero de alunos so pode ser 0 ou maior que zero, já retirados em metodo anterior numero de alunos inferior a Zero ou Zero...
 	
 	df_events_to_import = df[df[v_students] != '0']
 
@@ -464,6 +483,138 @@ def filter_events_grouped_students_null (df : DataFrame, name_file_validation : 
 	
 
 
-
 	return (df_events_to_import)
+
+
+def create_BEST_Classrooms (df_classrooms : DataFrame, folder : str, process_code: str):
+	# Manage Buildings
+
+	df_classrooms = df_classrooms[[s_sala_name, s_sala_caracteristic, s_sala_edificio]].copy()
+	
+
+	df_classrooms.rename(columns = {s_sala_name : v_classroom_name,
+							        s_sala_caracteristic : v_classroom_characteristic,
+									s_sala_edificio : v_classroom_building}, inplace=True)
+
+	
+
+	df_classrooms[v_classroom_characteristic].fillna('', inplace=True)
+	df_classrooms_buildings = df_classrooms[[v_classroom_name, v_classroom_building]].copy()
+
+	df_classrooms_buildings.sort_values(by=[v_classroom_building, v_classroom_name], inplace=True, ascending= True)
+
+	series_to_group = v_classroom_building
+	#Ao agrupar por entidades unicas já estou a exluir salas repetidas, por causa das repetições de sala. derivado de ser inserida linha por caracteristica de sala...
+	df_classrooms_buildings = group_unique_entities(df_classrooms_buildings,series_to_group, sep=',')
+
+	
+	file_name = 'BEST_Classrooms'
+	sheet_name = 'BuildingsBEST'
+	name_file_classrooms_best = folder + '/' + file_name + process_code
+
+	df_classrooms_buildings.to_excel(name_file_classrooms_best + '.xlsx', sheet_name, index = False,freeze_panes=(1,0))
+	
+	# Manage Characteristic
+	df_classrooms_caracteristic = df_classrooms[[v_classroom_name, v_classroom_characteristic]].copy()
+
+	df_classrooms_caracteristic.sort_values(by=[v_classroom_characteristic, v_classroom_name], inplace=True, ascending= True)
+
+	series_to_group = v_classroom_characteristic
+	df_classrooms_caracteristic = group_unique_entities(df_classrooms_caracteristic,series_to_group, sep=',')
+
+	sheet_name = 'CharacteristicBEST'
+	write_file (df_classrooms_caracteristic, name_file_classrooms_best + '.xlsx', sheet_name)
+
+	# Manage Classrooms
+	df_classrooms_unique = df_classrooms[[v_classroom_name, v_classroom_characteristic, v_classroom_building]].copy()
+
+	df_classrooms_unique.sort_values(by=[v_classroom_building, v_classroom_name], inplace=True, ascending= True)
+
+	series_to_group = [v_classroom_building, v_classroom_name]
+	df_classrooms_unique = group_unique_entities(df_classrooms_unique,series_to_group, sep=',')
+
+	sheet_name = 'ClassroomsBEST'
+	write_file (df_classrooms_unique, name_file_classrooms_best + '.xlsx', sheet_name)
+
+
+	# Add Leyenda 
+	df_leyenda = DataFrame(columns = [v_column_value_asignacion, v_column_entity_asignacion])
+
+	#Insert Name file Events
+	df_leyenda = df_leyenda.append({ v_column_value_asignacion : '0', 
+									 v_column_entity_asignacion : v_bulding_best,
+									 }, ignore_index = True)
+
+
+	df_leyenda = df_leyenda.append({ v_column_value_asignacion : '1', 
+									 v_column_entity_asignacion : v_characteristic_best,
+									 }, ignore_index = True)
+
+	df_leyenda = df_leyenda.append({ v_column_value_asignacion : '2', 
+									 v_column_entity_asignacion : v_classroom_best,
+									 }, ignore_index = True)
+
+	sheet_name = 'LeyendaAddClassrooms'
+	write_file (df_leyenda, name_file_classrooms_best + '.xlsx', sheet_name)
+
+	return()
+
+
+def check_classrooms_without_ID (df : DataFrame, name_file_validation):
+
+	df_no_code = df[df[[s_sala_code]].isnull().any (axis=1)].copy()
+	df_no_code = df_no_code.drop_duplicates()
+	
+	df_no_code = df_no_code.drop_duplicates().sort_values(by=[s_sala_name, s_sala_edificio])
+
+	sheet_name = 'ClassWithoutCode'
+	write_file (df_no_code, name_file_validation + '.xlsx', sheet_name)
+
+	df_with_code = df[df[[s_sala_code]].notnull().all (axis=1)].copy()
+
+
+	df_with_code_error = df_with_code[df_with_code[s_sala_code].str.count('_') != 1].copy()
+	df_with_code_error = df_with_code_error.drop_duplicates()
+
+	sheet_name = 'ClassWrongCode'
+	write_file (df_with_code_error, name_file_validation + '.xlsx', sheet_name)
+
+	df_classroom_code_guarani = df_with_code[df_with_code[s_sala_code].str.count('_') == 1].copy()
+
+	df_classroom_with_id_guarani = df_classroom_code_guarani[[s_sala_name, s_sala_code, s_sala_edificio]].copy()
+	df_classroom_with_id_guarani.drop_duplicates(inplace=True)
+
+	sheet_name = 'ClassCodeOK'
+	write_file (df_classroom_with_id_guarani, name_file_validation + '.xlsx', sheet_name)
+
+
+	return(df_classroom_code_guarani)
+
+
+def create_add_classrooms (df_events : DataFrame, folder : str, process_code: str):
+
+	df = df_events.copy()
+
+
+	df.rename (columns = {v_mod_name : v_module_name,
+	                      v_mod_cod : v_module_code,
+						  v_typology : v_module_typology, 
+						  v_bullet_group : v_student_group_name,
+						  v_section :v_sectionName }, inplace = True )
+
+	df = df [[v_module_name, v_module_code, v_module_typology, v_student_group_name, v_sectionName,
+	          v_plan_name, v_codigo_plan, v_year, c_courses_name, v_course_code, v_type_comission, v_students, v_hour_begin, v_hour_end,
+			  v_day, v_weeks ]].copy()
+
+	df [v_value_priority], df[v_classroom_priority] = ['', '']
+	df [v_value_alternative], df[v_classroom_alternative] = ['', ''] 
+
+
+
+	name_file = folder + '/AddClassrooms' + process_code
+	df.to_excel(name_file + '.xlsx', 'AddClassrooms', index = False,freeze_panes=(1,0))
+
+
+
+
 

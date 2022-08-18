@@ -1,4 +1,4 @@
-version = '3.0'
+version = '3.1'
 xlsx_dir = 'DataProcess'
 
 v_events_dir = 'EventsFolder'
@@ -82,6 +82,7 @@ c_courses_sigla = 'SiglaCarrera'
 s_sala_name = 'NombreSala'
 s_sala_code = 'CodigoSala'
 s_sala_edificio = 'Edificio'
+s_sala_caracteristic = 'Caracteristica'
 
 s_caraceristic = 'Caracteristicas'
 s_name_classrooms = 'Nombres'
@@ -124,8 +125,37 @@ v_historic_groups = 'Historic Groups'
 v_with_classrooms = 'With Classrooms'
 
 
+#variables Classroom BEST
+
 # -- variables -END- #
 
+v_classroom_name = 'ClassroomName'
+v_classroom_characteristic = 'Characteristic'
+v_classroom_building = 'BuildingName'
+
+
+#Leyenda File Best_Classrooms
+
+v_column_value_asignacion = 'ValueAsignacion'
+v_column_entity_asignacion = 'EntityAsignacion'
+
+v_bulding_best = 'Building_BEST'
+v_characteristic_best = 'CharacteristicBEST'
+v_classroom_best = 'ClassroomsBEST'
+
+#Variables AddClassrooms:
+
+v_module_name = 'ModuleName'
+v_module_code = 'ModuleCode'
+v_module_typology = 'TypologyName'
+v_student_group_name = 'StudentGroupName'
+v_sectionName= 'SectionName'
+
+v_classroom_priority = 'PriorityClassroom' 
+v_value_priority = 'PriorityValue'
+
+v_classroom_alternative = 'AlternativeClassroom' 
+v_value_alternative = 'AlternativeValue'
 
 
 class color:

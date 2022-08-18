@@ -9,7 +9,7 @@ from library import(
 )
 
 # only dev mod - check errores
-# import traceback
+import traceback
 
 def begin_process(file_schedules : str,  file_groups : str, map_groups : int, check_classrooms : int, academic_term : str):
 
@@ -27,12 +27,12 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
         df_events = val.cleaning_data (df_events)
         df_courses = val.cleaning_data (df_courses)
         df_grupos = val.cleaning_data (df_grupos)
-        
-        if check_classrooms == 1:
-            df_salas =  val.cleaning_data (df_salas)
+        df_salas =  val.cleaning_data (df_salas)
 
         if map_groups == 1:
             df_historic_students = val.cleaning_data(df_historic_students)
+
+
 
         #Passar Variavel a dizer que ficou com dados incompletos(Para Apresentar no fim)
         df_events = val.check_nulls(df_events, check_classrooms, name_file_validation)
@@ -42,6 +42,11 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
         # Number students < 0 Retirados de eventos a importar...Esta a escrever em ficheiro tambem...
         df_events = val.verify_students_null(df_events, name_file_validation)
 
+
+
+        classrooms_guarani = val.check_classrooms_without_ID(df_salas, name_file_validation)
+        classrooms_guarani = df_salas.copy()
+
         if check_classrooms == 1:
 
             # ID to Asig Salas
@@ -49,11 +54,17 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
 
             # Verificar a validação de Salas que não foram respectivamente mapeadas...    
             # Insert classrooms BC
-            df_join_events_salas = val.get_name_salas_btt(df_events_salas, df_salas, name_file_validation)
+            df_join_events_salas = val.get_name_salas_btt(df_events_salas, classrooms_guarani, name_file_validation)
 
             df_events = df_join_events_salas.copy()
 
-        df_events = val.replace_minutes_hours(df_events)
+        else:
+
+            val.create_BEST_Classrooms(classrooms_guarani, process_folder, process_code)
+
+            
+        # Neste momento é efectuado no processo de BC_To_BTT
+        # df_events = val.replace_minutes_hours(df_events)
 
 
         #Verificar se eventos tem hora de inicio superior a hora de fim(verificar como mostrar a validação)
@@ -89,8 +100,12 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
 
         df_events = val.selec_data_comissiones_compartidas_to_import(df_events, check_classrooms)
 
-
+        #Não usar a partir de v3.0.1 (filtrar por zero...neste metodo nunca irá guradar eventos = 0)
         df_events = val.filter_events_grouped_students_null (df_events, name_file_validation)
+
+        if check_classrooms == 0:
+            
+            val.create_add_classrooms(df_events, process_folder, process_code)
 
         file_name = '/Horarios_UCA_'
 
@@ -110,7 +125,7 @@ def begin_process(file_schedules : str,  file_groups : str, map_groups : int, ch
        
         messagebox.showerror('Error', 'Contact:\n\n' + 'info@bulletsolutions.com')
 
-        #Only to Debug
-        # print (traceback.format_exc())
+        # Only to Debug
+        print (traceback.format_exc())
 
        

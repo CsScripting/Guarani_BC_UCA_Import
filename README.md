@@ -51,3 +51,41 @@ Analisar metodo de grouped_data em main_mod para o caso descrito acima...
 
 - Não existe relação de processos a executar...Pode gerar com salas ou não !! Segundo historico ou não !!
 - Depois de somados alunos das diferentes comissões compartidas apenas considerados as comissões com número de alunos != zero.
+  Valores a nulo não são retirados à cabeça...podem juntar com comissão compartida...
+  Verificar a diferença entre StudentsNull e EventStudentZero
+
+**Versões:**
+
+* 3.1.0
+
+- [x] Numero de aluno NULL retirados;
+  -> Já não escreve em ficheiro de DataValidation (StudentsNull)...que antes passava a zero...
+  -> Fica Inserido en NullValues
+  -> Comissões com zero alunos retiradas de horarios (Mesmo que tenham Id de Asignacion), Antes Agregava-se as comissões com zero alunos, podia ter outra comissão 
+    associada, que já tinha alunos !!!!
+  -> Neste caso já não sera necesario executar em main_mod função de filter_events_grouped_students_null
+
+  - [ ] Validar Mapeamento de Curriculum;
+  - [ ] Validar Possibilidade de poder associar mais de uma sala...associar a BcToBTT;
+  - [ ] Validar Caracteres especiais nomeadamente & e virgulas;
+  - [X] Salas Sempre Obrigatorias, inserir eventos com salas, ou preparar atribuição de salas por ficheiro;
+  - [X] Validação ID Guarani;
+
+  - [X] Criar BESTClassrooms...valores Default a usar em processo de Atribuição de Salas;  
+
+
+  - [X] Criar AddClassrooms...valores Default a usar em processo de Atribuição de Salas;  
+        - v_mod_code, v_section, v_typologie, v_student_group,
+        - v_prioriyt_value, v_prioriyt_class, v_alternative_value, v_alternative_class
+
+   - [X] para Criar o BESTClassrooms estava a filtrar por salas que efectivamente tinha o codigo corrreto de Guarani ....????
+         Neste momento não está. Será para usar desta forma ?????
+
+  * 3.1.1
+
+  - [X] Validação de Colunas de Ficheiro de Salas; 
+        Na Apresentação de Erro não apresentava a necessidade de ter as caracteristicas de salas !!!
+
+  - [X] Validação se String permite passar para int(isdigit) para as analises de Inteiros nos numeros de alunos; 
+
+  - [ ] Mais tarde decidir onde deverá ficar o arredondar as horas;

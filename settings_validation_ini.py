@@ -66,7 +66,7 @@ def settings_validation_fields(file_schedules:str, file_groups:str, value_btt:st
 
         if e.error_value == v.sheet_classrooms:
 
-            columns_original = v.s_sala_name + ' - ' + v.s_sala_code + ' - ' + v.s_sala_edificio
+            columns_original = v.s_sala_name + ' - ' + v.s_sala_code + ' - ' + v.s_sala_caracteristic + ' - ' + v.s_sala_edificio
 
 
         if e.error_value == v.sheet_course:
